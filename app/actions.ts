@@ -258,11 +258,6 @@ export const editQuiz = async (formData: FormData) => {
     console.log("Quiz updated successfully:", updatedQuiz);
   }
 
-  const { data: quesSebelum } = await supabase.from("questions").select("*").eq("quiz_id", quizId);
-  if (quesSebelum) {
-    questionSebelumnya = quesSebelum;
-  }
-
   for (let x = 0; x < questionSebelumnya.length; x++) {
     const { data, error: deleteError } = await supabase
       .from("questions")
