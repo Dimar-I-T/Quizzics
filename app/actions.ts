@@ -236,25 +236,8 @@ export const editQuiz = async (formData: FormData) => {
   const subject_id = formData.get("subject_id")?.toString();
   console.log(`subject_id = ${subject_id}`);
   console.log(`quiz_id = ${quizId}`);
-  let bisa = 0;
   
   const { data: subjectData } = await supabase.from("subjects").select("*").eq("id", subject_id).single();
-  
-  for (let x of opsi){
-    for (let y of x.option){
-      if (y == true){
-        bisa++;
-      }
-    }
-  }
-
-  if (bisa != opsi.length){
-    return encodedRedirect(
-      "error",
-      `/admin/subjects/${subjectData?.name}/quizzes/${quizId}`,
-      "Questions must have an answer!",
-    );
-  }
 
   if (!quizId || !user?.id) {
     console.error("Missing quiz ID or user ID");
