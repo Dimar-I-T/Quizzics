@@ -1,6 +1,6 @@
 'use client'
 import { createClient } from "@/utils/supabase/client";
-import React from 'react'
+import React, {Suspense} from 'react'
 import { addQuiz, signUpAction } from "@/app/actions";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -194,9 +194,11 @@ const page = () => {
                         </h1>
                     </div>
                 </div>
-                {error && <h2 className="relative text-[1vw] text-[white] font-light">
-                    Questions must have an answer!
-                </h2>}
+                <Suspense>
+                    {error && <h2 className="relative text-[1vw] text-[white] font-light">
+                        Questions must have an answer!
+                    </h2>}
+                </Suspense>
                 <form>
                     <div className="relative flex flex-col bg-transparent min-h-auto w-[60vw] mt-[2vw]">
                         <Label htmlFor="title" className="text-[1.5vw]">Title</Label>

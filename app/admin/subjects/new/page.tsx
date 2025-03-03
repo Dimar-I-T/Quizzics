@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { Suspense } from 'react';
 import { addQuiz, addSubject, signUpAction } from "@/app/actions";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -8,9 +8,19 @@ import { Label } from "@/components/ui/label";
 import { redirect, useRouter } from 'next/navigation';
 import { useSearchParams } from "next/navigation";
 
-const page = () => {
+function ErrorMessage() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+
+  if (!error) return null;
+  return (
+    <h2 className="relative text-[1vw] text-[white] font-light">
+      Subject name is already used!
+    </h2>
+  );
+}
+
+const page = () => {
   const router = useRouter();
 
   return (
@@ -34,9 +44,9 @@ const page = () => {
             <Label htmlFor="name" className="text-[1.5vw]">Subject Name</Label>
             <Input className="mb-[1vw] w-[20vw]" name="name" placeholder="Enter your subject name" required />
           </div>
-          {error && <h2 className="relative text-[1vw] text-[white] font-light">
-            Subject name is already used!
-          </h2>}
+          <Suspense fallback={<div>Loading...</div>}>
+            <ErrorMessage />
+          </Suspense>
           <SubmitButton className="absolute h-[8vw] w-[15vw] top-[17vw] left-1/2 transform -translate-x-1/2 rounded-[2vw] text-[1.5vw] font-bold" formAction={addSubject} pendingText="Adding subject...">
             CREATE SUBJECT!
           </SubmitButton>
