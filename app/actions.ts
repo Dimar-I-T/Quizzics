@@ -151,14 +151,6 @@ export const addQuiz = async (formData: FormData) => {
   
   console.log(subject_id);
   
-  if (!opsi.every((q) => q.option.includes(true))) {
-    return encodedRedirect(
-      "error",
-      `/admin/subjects/${subject_id}/quizzes/new`,
-      "Questions must have at least one correct answer!",
-    );
-  }
-  
   const [subjectResult, quizInsertResult] = await Promise.all([
     supabase.from("subjects").select("name").eq("id", subject_id).single(),
     supabase
