@@ -248,14 +248,6 @@ export const editQuiz = async (formData: FormData) => {
     }
   }
 
-  for (let x = 0; x < opsi.length; x++){
-    for (let y = 0; y < 4; y++){
-      if (opsi[x].opsi[y] == ''){
-        opsi[x].opsi[y] = 'x';
-      }
-    }
-  }
-
   if (bisa != opsi.length){
     return encodedRedirect(
       "error",
@@ -287,11 +279,9 @@ export const editQuiz = async (formData: FormData) => {
   const { data: quesSebelum } = await supabase.from("questions").select("*").eq("quiz_id", quizId);
   if (quesSebelum) {
     questionSebelumnya = quesSebelum;
-    console.log(`sebelumnya: ${JSON.stringify(questionSebelumnya, null, 2)}`);
   }
 
   for (let x = 0; x < questionSebelumnya.length; x++) {
-    console.log(`quesId: ${questionSebelumnya[x].id}`)
     const { data, error: deleteError } = await supabase
       .from("questions")
       .delete()
@@ -316,7 +306,6 @@ export const editQuiz = async (formData: FormData) => {
       .insert([{ quiz_id: quizId, question_text: ops.question_text }])
       .select("id")
       .single();
-
     if (erro) {
       console.error("Error inserting question:", erro);
     } else if (!questionData) {
