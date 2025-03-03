@@ -220,100 +220,105 @@ export const editQuiz = async (formData: FormData) => {
     opsi: string[];
     option: boolean[];
   };
-
+  
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  let opsi: OptionType[] = JSON.parse(formData.get("opsi") as string);
+  
+  if (!user) {
+    console.error("User is not authenticated");
+    return;
+  }
+  
+  const opsi: OptionType[] = JSON.parse(formData.get("opsi") as string);
   const title = formData.get("title")?.toString();
   const description = formData.get("description")?.toString();
   const quizId = formData.get("quizId")?.toString();
-  let questionSebelumnya: OptionType[] = [];
-  console.log(JSON.stringify(opsi, null, 2));
   const subject_id = formData.get("subject_id")?.toString();
+  
+  if (!quizId) {
+    console.error("Missing quiz ID");
+    return;
+  }
+  
   console.log(`subject_id = ${subject_id}`);
   console.log(`quiz_id = ${quizId}`);
   
-  const { data: subjectData } = await supabase.from("subjects").select("*").eq("id", subject_id).single();
-
-  if (!quizId || !user?.id) {
-    console.error("Missing quiz ID or user ID");
-    return;
-  }
-
-  const { data: updatedQuiz, error: quizError } = await supabase
-    .from("quizzes")
-    .update({
-      title: title,
-      description: description,
-      admin_id: user.id,
-    })
-    .eq("id", quizId)
+  const [subjectResult, quizUpdateResult] = await Promise.all([
+    supabase.from("subjects").select("name").eq("id", subject_id).single(),
+    supabase
+      .from("quizzes")
+      .update({ title, description, admin_id: user.id })
+      .eq("id", quizId),
+  ]);
+  
+  const subjectData = subjectResult.data;
+  const quizError = quizUpdateResult.error;
+  
   if (quizError) {
     console.error("Error updating quiz:", quizError);
     return;
-  } else {
-    console.log("Quiz updated successfully:", updatedQuiz);
   }
-
-  for (let x = 0; x < questionSebelumnya.length; x++) {
-    const { data, error: deleteError } = await supabase
+  
+  const { data: previousQuestions, error: questionsError } = await supabase
+    .from("questions")
+    .select("id")
+    .eq("quiz_id", quizId);
+  
+  if (questionsError) {
+    console.error("Error fetching previous questions:", questionsError);
+    return;
+  }
+  
+  if (previousQuestions?.length) {
+    const questionIds = previousQuestions.map((q) => q.id);
+    const { error: deleteError } = await supabase
       .from("questions")
       .delete()
-      .eq("id", questionSebelumnya[x].id);
-
-    if (data) {
-      console.log(`deleted data: ${data}`);
-    }
-
+      .in("id", questionIds);
+  
     if (deleteError) {
-      console.log(`error delete: ${JSON.stringify(deleteError, null, 2)}`);
+      console.error("Error deleting previous questions:", deleteError);
+      return;
     }
   }
-
-  for (let ops of opsi) {
-    if (ops.question_text == ''){
-      continue;
-    }
-
-    const { data: questionData, error: erro } = await supabase
-      .from("questions")
-      .insert([{ quiz_id: quizId, question_text: ops.question_text }])
-      .select("id")
-      .single();
-    if (erro) {
-      console.error("Error inserting question:", erro);
-    } else if (!questionData) {
-      console.error("Question insert returned null");
-    }
-
-    const questionId = questionData?.id;
-
-    if (!questionId) {
-      console.error("Skipping answer choices due to missing question ID");
-      continue;
-    }
-
-    for (let x = 0; x < 4; x++) {
-      const { error: answerError } = await supabase
-        .from("answer_choices")
-        .insert([
-          {
-            question_id: questionId,
-            choice_text: ops.opsi[x],
-            is_correct: ops.option[x],
-          },
-        ]);
-
-      if (answerError) {
-        console.error("Error inserting answer choice:", answerError);
-      }
-    }
+  
+  const newQuestions = opsi
+    .filter((q) => q.question_text.trim() !== "")
+    .map((q) => ({
+      quiz_id: quizId,
+      question_text: q.question_text,
+    }));
+  
+  const { data: insertedQuestions, error: insertQuestionsError } = await supabase
+    .from("questions")
+    .insert(newQuestions)
+    .select("id");
+  
+  if (insertQuestionsError) {
+    console.error("Error inserting questions:", insertQuestionsError);
+    return;
   }
-
-  return redirect(`/admin/subjects/${subjectData.name}/quizzes`);
+  
+  const newAnswers = insertedQuestions.flatMap((question, index) =>
+    opsi[index].opsi.map((choice, i) => ({
+      question_id: question.id,
+      choice_text: choice,
+      is_correct: opsi[index].option[i],
+    }))
+  );
+  
+  const { error: insertAnswersError } = await supabase
+    .from("answer_choices")
+    .insert(newAnswers);
+  
+  if (insertAnswersError) {
+    console.error("Error inserting answer choices:", insertAnswersError);
+    return;
+  }
+  
+  return redirect(`/admin/subjects/${subjectData?.name}/quizzes`);
 }
 
 export const submitAnswer = async (formData: FormData) => {
