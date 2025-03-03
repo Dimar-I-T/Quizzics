@@ -128,89 +128,97 @@ export const addQuiz = async (formData: FormData) => {
     opsi: string[];
     option: boolean[];
   };
+  
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  
+  if (!user) {
+    console.error("User is not authenticated");
+    return;
+  }
+  
   const opsi: OptionType[] = JSON.parse(formData.get("opsi") as string);
   const title = formData.get("title")?.toString();
   const description = formData.get("description")?.toString();
   const subject_id = formData.get("subject_id")?.toString();
-  console.log(subject_id);
-
-  const { data: subjectData } = await supabase.from("subjects").select("*").eq("id", subject_id).single();
-
-  let bisa = 0;
   
-  for (let x of opsi){
-    for (let y of x.option){
-      if (y == true){
-        bisa++;
-      }
-    }
+  if (!subject_id) {
+    console.error("Missing subject_id");
+    return;
   }
-
-  if (bisa != opsi.length){
+  
+  console.log(subject_id);
+  
+  if (!opsi.every((q) => q.option.includes(true))) {
     return encodedRedirect(
       "error",
-      `/admin/subjects/${subjectData?.name}/quizzes/new`,
-      "Questions must have an answer!",
+      `/admin/subjects/${subject_id}/quizzes/new`,
+      "Questions must have at least one correct answer!",
     );
   }
-
-  const { data: quizData, error: insertError } = await supabase.from("quizzes").insert([
-    {
-      title: title,
-      description: description,
-      admin_id: user?.id,
-      subject_id: subject_id,
-    }
-  ]).select("id").single();
-
-  const quizId = quizData?.id;
-
-  for (let ops of opsi) {
-    if (ops.question == ''){
-      continue;
-    }
-    
-    const { data: questionData, error: erro } = await supabase
-      .from("questions")
-      .insert([{ quiz_id: quizId, question_text: ops.question }])
+  
+  const [subjectResult, quizInsertResult] = await Promise.all([
+    supabase.from("subjects").select("name").eq("id", subject_id).single(),
+    supabase
+      .from("quizzes")
+      .insert([{ title, description, admin_id: user.id, subject_id }])
       .select("id")
-      .single();
-
-    if (erro) {
-      console.error("Error inserting question:", erro);
-    } else if (!questionData) {
-      console.error("Question insert returned null");
-    }
-
-    const questionId = questionData?.id;
-
-    if (!questionId) {
-      console.error("Skipping answer choices due to missing question ID");
-      continue;
-    }
-
-    for (let x = 0; x < 4; x++) {
-      const { error: answerError } = await supabase
-        .from("answer_choices")
-        .insert([
-          {
-            question_id: questionId,
-            choice_text: ops.opsi[x],
-            is_correct: ops.option[x],
-          },
-        ]);
-
-      if (answerError) {
-        console.error("Error inserting answer choice:", answerError);
-      }
-    }
+      .single(),
+  ]);
+  
+  const subjectData = subjectResult.data;
+  const quizData = quizInsertResult.data;
+  const insertError = quizInsertResult.error;
+  
+  if (insertError) {
+    console.error("Error inserting quiz:", insertError);
+    return;
   }
-
-  return redirect(`/admin/subjects/${subjectData.name}/quizzes`);
+  
+  const quizId = quizData?.id;
+  if (!quizId) {
+    console.error("Quiz insertion failed, no ID returned");
+    return;
+  }
+  
+  const questionsToInsert = opsi
+    .filter((q) => q.question.trim() !== "")
+    .map((q) => ({
+      quiz_id: quizId,
+      question_text: q.question,
+    }));
+  
+  const { data: insertedQuestions, error: questionsError } = await supabase
+    .from("questions")
+    .insert(questionsToInsert)
+    .select("id");
+  
+  if (questionsError) {
+    console.error("Error inserting questions:", questionsError);
+    return;
+  }
+  
+  const answersToInsert = insertedQuestions.flatMap((question, index) =>
+    opsi[index].opsi.map((choice, i) => ({
+      question_id: question.id,
+      choice_text: choice,
+      is_correct: opsi[index].option[i],
+    }))
+  );
+  
+  const { error: answersError } = await supabase
+    .from("answer_choices")
+    .insert(answersToInsert);
+  
+  if (answersError) {
+    console.error("Error inserting answer choices:", answersError);
+    return;
+  }
+  
+  return redirect(`/admin/subjects/${subjectData?.name}/quizzes`);
+  
 }
 
 export const editQuiz = async (formData: FormData) => {
