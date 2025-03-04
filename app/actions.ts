@@ -368,8 +368,8 @@ export const submitAnswer = async (formData: FormData) => {
   }
   
   const answerMap: Record<string, boolean> = {};
-  answers.forEach(({ choice_text, is_correct }) => {
-    answerMap[`${choice_text}`] = is_correct;
+  answers.forEach(({ question_id, choice_text, is_correct }) => {
+    answerMap[`${question_id}-${choice_text}`] = is_correct;
   });
   
   let right_answers = 0;
@@ -380,9 +380,10 @@ export const submitAnswer = async (formData: FormData) => {
     for (let i = 0; i < 4; i++) {
       console.log(question.option[i]);
       if (question.option[i] == true) {
+        console.log(`benar: ` + answerMap[`${question.question_id}-${question.opsi[i]}`]);
         console.log(`opsinya: `+question.option[i]);
         console.log(`textnya: ` + question.opsi[i]);
-        if (answerMap[`${question.opsi[i]}`]) {
+        if (answerMap[`${question.question_id}-${question.opsi[i]}`]) {
           right_answers++;
         } else {
           wrong_answers++;
