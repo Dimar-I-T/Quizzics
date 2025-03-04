@@ -148,9 +148,7 @@ export const addQuiz = async (formData: FormData) => {
     console.error("Missing subject_id");
     return;
   }
-  
-  console.log(subject_id);
-  
+
   const [subjectResult, quizInsertResult] = await Promise.all([
     supabase.from("subjects").select("name").eq("id", subject_id).single(),
     supabase
@@ -323,91 +321,95 @@ export const editQuiz = async (formData: FormData) => {
 
 export const submitAnswer = async (formData: FormData) => {
   type OptionType = {
-    id: string,
-    question_text: string,
-    opsi: string[],
-    option: boolean[],
+    question_id: string;
+    question_text: string;
+    opsi: string[];
+    option: boolean[];
   };
-
+  
   type AnswerType = {
-    id: string,
-    question_id: string,
-    choice_text: string,
-    is_correct: boolean,
-  }
-
+    id: string;
+    question_id: string;
+    choice_text: string;
+    is_correct: boolean;
+  };
+  
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  let score = 0;
-  let right_answers = 0;
-  let wrong_answers = 0;
-  const opsi: OptionType[] = JSON.parse(formData.get("opsi") as string);
-  const title = formData.get("title")?.toString();
-  const description = formData.get("description")?.toString();
-  const quizId = formData.get("quizId")?.toString();
-  let questionSebelumnya: OptionType[] = [];
-  console.log(JSON.stringify(opsi, null, 2));
-  const subject_id = formData.get("subject_id")?.toString();
-  console.log(`subject_id = ${subject_id}`);
-  console.log(`quiz_id = ${quizId}`);
-  console.log(`jawaban: ` + JSON.stringify(opsi, null, 2));
-
-  if (!quizId || !user?.id) {
-    console.error("Missing quiz ID or user ID");
+  
+  if (!user?.id) {
+    console.error("User is not authenticated");
     return;
   }
-
-  const { data: quesSebelum } = await supabase.from("questions").select("*").eq("quiz_id", quizId);
-  if (quesSebelum) {
-    questionSebelumnya = quesSebelum;
-    console.log(`sebelumnya: ${JSON.stringify(questionSebelumnya, null, 2)}`);
+  
+  const opsi: OptionType[] = JSON.parse(formData.get("opsi") as string);
+  const quizId = formData.get("quizId")?.toString();
+  
+  if (!quizId) {
+    console.error("Missing quiz ID");
+    return;
   }
   
-  for (let x = 0; x < questionSebelumnya.length; x++){
-    let bisa: boolean = true;
-    let map: Record<string, boolean> = {};
-    let dataAnswer: AnswerType[];
-    const {data, error} = await supabase.from("answer_choices").select("*").eq("question_id", questionSebelumnya[x].id);
-    if (data){
-      dataAnswer = data;
-      for (let y = 0; y < 4; y++){
-        map[dataAnswer[y].choice_text] = dataAnswer[y].is_correct;
-      }
+  console.log(`quiz_id = ${quizId}`);
+  console.log(`jawaban: `, JSON.stringify(opsi, null, 2));
+  console.log("id: " + JSON.stringify(opsi, null, 2));
+  const [{ data: questions }, { data: answers }] = await Promise.all([
+    supabase.from("questions").select("id").eq("quiz_id", quizId),
+    supabase.from("answer_choices").select("question_id, choice_text, is_correct").in("question_id", opsi.map(q => q.question_id)),
+  ]);
+  
+  console.log("answer: " + JSON.stringify(answers, null, 2));
 
-      for (let y = 0; y < 4; y++){
-        if (opsi[x].option[y] == true){
-          if (map[opsi[x].opsi[y]] == true){
-            right_answers++;
-          }else{
-            wrong_answers++;
-          }
-
-          break;
+  if (!questions || !answers) {
+    console.error("Failed to fetch quiz data.");
+    return;
+  }
+  
+  const answerMap: Record<string, boolean> = {};
+  answers.forEach(({ choice_text, is_correct }) => {
+    answerMap[`${choice_text}`] = is_correct;
+  });
+  
+  let right_answers = 0;
+  let wrong_answers = 0;
+  
+  for (const question of opsi) {
+    console.log(`question: ` + JSON.stringify(question, null, 2));
+    for (let i = 0; i < 4; i++) {
+      console.log(question.option[i]);
+      if (question.option[i] == true) {
+        console.log(`opsinya: `+question.option[i]);
+        console.log(`textnya: ` + question.opsi[i]);
+        if (answerMap[`${question.opsi[i]}`]) {
+          right_answers++;
+        } else {
+          wrong_answers++;
         }
+        break;
       }
-    }else{
-      console.log(error)
     }
   }
-
-  score = Math.round(100*(right_answers / questionSebelumnya.length));
+  
+  const score = Math.round((100 * right_answers) / questions.length);
+  
   console.log(`benar: ${right_answers}\nsalah: ${wrong_answers}\nscore: ${score}`);
-
-  const {error} = await supabase.from("quiz_results").insert([{
-    quiz_id: quizId,
-    student_id: user.id,
-    score: score,
-    completed_at: new Date().toISOString(),
-    right_answers: right_answers,
-    wrong_answers: wrong_answers,
-  }])
-
-  if (error){
-    console.log(error);
+  
+  const { error } = await supabase.from("quiz_results").insert([
+    {
+      quiz_id: quizId,
+      student_id: user.id,
+      score,
+      completed_at: new Date().toISOString(),
+      right_answers,
+      wrong_answers,
+    },
+  ]);
+  
+  if (error) {
+    console.error("Error inserting quiz result:", error);
   }
-
+  
   return redirect(`/student`);
 }
