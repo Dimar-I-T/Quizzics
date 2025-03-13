@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import React from 'react';
 import { useState, useEffect } from "react";
 import IconMail from '@/public/mail';
+import Image from 'next/image';
 
 const page = () => {
   interface Subject {
@@ -44,8 +45,8 @@ const page = () => {
         studentid: user?.id,
       });
 
-      if (data){
-          setDataSubject(data ?? []);
+      if (data) {
+        setDataSubject(data ?? []);
       }
     }
 
@@ -56,8 +57,8 @@ const page = () => {
 
   const subjects = Array.from({ length: dataa.length }, (_, i) => {
     return (
-      <div key={i} className="justify-items-center">
-        <div className="relative bg-transparent min-h-auto max-h-[9.5vw] w-[35vw]">
+      <div key={i} className="justify-items-center z-10">
+        <div className="relative bg-transparent min-h-auto max-h-[9.5vw] w-[35vw] z-10">
           <button
             onClick={() => redirect(`/student/review/${dataa[i].subjectid}/`)}
             className="relative ml-[1vw] flex items-center mt-[1vw] rounded-[2vw] mih-h-auto max-h-[9.5vw] w-[35vw] bg-[#3F8CFD] opacity-[90%] hover:opacity-[100%]">
@@ -78,6 +79,13 @@ const page = () => {
 
   return (
     <div className="relative bg-cover justify-items-center bg-[#CCB5FB] min-h-screen w-full overflow-hidden">
+      <Image
+        src="/Pattern.png"
+        alt="Pattern background"
+        fill
+        className="object-contain repeat-x repeat-y z-0"
+        priority
+      />
       <button
         onClick={() => redirect(`/student/`)}
         className="absolute font-light text-[white] left-[5vw] top-[3vw] text-[1vw] opacity-[90%] hover:opacity-[100%] rounded-[2vw] bg-[#007bff] h-[3vw] w-[5vw]"

@@ -196,7 +196,7 @@ const page = () => {
       <div className="grid justify-items-center bg-[#CCB5FB] w-full relative min-h-screen">
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src="/pattern.png"
+            src="/Pattern.png"
             alt="Pattern background"
             fill
             className="object-contain repeat-x repeat-y z-0"

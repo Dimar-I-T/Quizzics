@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import { Label } from "@/components/ui/label";
 import { data } from "autoprefixer";
+import Image from 'next/image';
 
 const page = () => {
     const params = useParams();
@@ -109,6 +110,13 @@ const page = () => {
 
     return (
         <div className="relative bg-cover justify-items-center bg-[#CCB5FB] min-h-screen w-full overflow-hidden">
+            <Image
+                src="/Pattern.png"
+                alt="Pattern background"
+                fill
+                className="object-contain repeat-x repeat-y z-0"
+                priority
+            />
             <button
                 onClick={() => redirect(`/student/review/`)}
                 className="absolute font-light text-[white] left-[5vw] top-[3vw] text-[1vw] opacity-[90%] hover:opacity-[100%] rounded-[2vw] bg-[#007bff] h-[3vw] w-[5vw]"
