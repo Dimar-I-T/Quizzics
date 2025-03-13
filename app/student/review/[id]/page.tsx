@@ -123,7 +123,7 @@ const page = () => {
             >
                 Back
             </button>
-            <div className="relative bg-transparent top-[1vw] h-[40vw] w-[60vw] mt-[2vw]">
+            <div className="relative bg-transparent top-[1vw] h-[40vw] w-[60vw]">
                 <div className="relative bg-transparent h-[6vw] w-full top-0">
                     <div className="relative justify-items-center bg-transparent h-[7vw] w-full">
                         <h1 className="relative text-[3vw] top-0 mt-[0.5vw] text-[black] font-bold">

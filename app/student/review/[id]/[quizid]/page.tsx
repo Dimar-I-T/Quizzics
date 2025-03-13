@@ -292,7 +292,7 @@ export default function Page() {
             <div className="justify-items-center w-full">
                 <div className="pt-2 sm:pt-0 grid justify-items-center w-full pb-20 relative" 
                     style={{
-                        backgroundImage: 'url("/pattern.png")',
+                        backgroundImage: 'url("/Pattern.png")',
                         backgroundRepeat: 'repeat',
                     }}
                 >
