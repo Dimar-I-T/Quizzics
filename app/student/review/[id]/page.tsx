@@ -96,7 +96,7 @@ const page = () => {
                 <div className="relative bg-transparent top-[-1vw] min-h-auto max-h-[9.5vw] w-[35vw]">
                     <button
                         onClick={() => redirect(`/student/review/${subject?.id}/${dataa[i].quizid}`)}
-                        className="relative left-1/2 transform -translate-x-1/2 flex flex-col mt-[1.5vw] rounded-[2vw] mih-h-auto max-h-[9.5vw] w-[35vw] bg-[grey] opacity-[90%] hover:opacity-[100%]">
+                        className="relative left-1/2 transform -translate-x-1/2 flex flex-col mt-[1.5vw] rounded-[2vw] mih-h-auto max-h-[9.5vw] w-[35vw] bg-[#3F8CFD] opacity-[90%] hover:opacity-[100%]">
                         <h1 className="relative m-[0.5vw] text-[white] font-bold text-[2vw]">
                             {dataa[i].quiztitle}
                         </h1>
@@ -108,7 +108,7 @@ const page = () => {
     });
 
     return (
-        <div className="bg-cover justify-items-center bg-[black] min-h-full w-full">
+        <div className="relative bg-cover justify-items-center bg-[#CCB5FB] min-h-screen w-full overflow-hidden">
             <button
                 onClick={() => redirect(`/student/review/`)}
                 className="absolute font-light text-[white] left-[5vw] top-[3vw] text-[1vw] opacity-[90%] hover:opacity-[100%] rounded-[2vw] bg-[#007bff] h-[3vw] w-[5vw]"
@@ -118,14 +118,14 @@ const page = () => {
             <div className="relative bg-transparent top-[1vw] h-[40vw] w-[60vw] mt-[2vw]">
                 <div className="relative bg-transparent h-[6vw] w-full top-0">
                     <div className="relative justify-items-center bg-transparent h-[7vw] w-full">
-                        <h1 className="relative text-[3vw] top-0 mt-[0.5vw] text-[white] font-bold">
+                        <h1 className="relative text-[3vw] top-0 mt-[0.5vw] text-[black] font-bold">
                             {subject?.name}
                         </h1>
                     </div>
 
                     <div className="relative mt-[1vw] flex bg-transparent w-full h-[30vw]">
-                        <div className="relative border-[white] left-1/2 transform -translate-x-1/2 border-[0.5vw] flex flex-col mt-[1vw] h-[30vw] w-[40vw] bg-transparent">
-                            <h1 className="sticky m-[0.5vw] text-[white] text-[2vw]">
+                        <div className="relative border-[#DB82DA] left-1/2 transform -translate-x-1/2 border-[0.5vw] flex flex-col mt-[1vw] h-[30vw] w-[40vw] bg-transparent">
+                            <h1 className="sticky m-[0.5vw] text-[black] text-[2vw]">
                                 Review Quizzes
                             </h1>
 

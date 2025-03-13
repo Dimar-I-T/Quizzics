@@ -62,6 +62,12 @@ export const signUpAction = async (formData: FormData) => {
   }
 };
 
+export const signOutAction = async () => {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  return redirect("/logout");
+};
+
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;

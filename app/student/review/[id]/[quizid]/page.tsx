@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { SubmitButton } from "@/components/submit-button";
 import { Label } from "@/components/ui/label";
+import Image from 'next/image';
+import IconBook from "@/public/book";
 
 export default function Page() {
     interface SubjectType {
@@ -114,7 +116,6 @@ export default function Page() {
     useEffect(() => {
         const getData = async () => {
             if (!quiz_data?.id) return;
-
             const { data: questionsData, error } = await supabase.from("questions").select("id, question_text").eq("quiz_id", quiz_data.id);
             console.log("Raw Questions Data:", questionsData);
 
@@ -188,55 +189,117 @@ export default function Page() {
         });
     };
 
-    const questions = opsi.map((q, i) => (
-        <div key={q.question_id} className="relative flex bg-transparent min-h-auto w-[60vw] mt-[10vw]">
-            <div className="relative bg-transparent h-full w-1/2">
-                <Label htmlFor={`Question ${i + 1}`} className="relative text-[2vw] mb-[1vw]">
-                    Question {i + 1}
-                </Label>
-                <div
-                    className="ml-[1vw] mt-[1vw] placeholder:text-sm rounded-[1vw] p-[0.2vw] placeholder:text-muted-foreground scroll-container focus:outline-none resize-none w-[50vw]">
-                    {q.question_text}
-                </div>
+    const questions = opsi.map((q, i, arr) => (
+        <div key={q.question_id} className=" sm:mb-5 sm:mt-3 md:mb-7 md:mt-4 mb-3 mt-2">
+            <div>
 
-                <div className="relative bg-transparent h-auto w-[50vw] ml-[-1vw] flex flex-wrap">
-                    {q.opsi.map((choice, j) => (
-                        <div key={`${q.question_id}-option-${j}`} className="relative pl-[-1vw] flex flex-wrap">
-                            <div
-                                className="relative mt-[0.8vw] ml-[1vw] placeholder:text-sm rounded-[1vw] p-[0.2vw] placeholder:text-muted-foreground scroll-container focus:outline-none resize-none w-[16.7vw]">
-                                {abcd[j]} &nbsp;&nbsp; {choice}
-                            </div>
+                {/* Question */}
+                <div className="h-auto py-3 xs:py-5 sm:py-12 md:py-[40px] mx-auto w-[320px] xs:w-[420px] sm:w-[600px] md:w-[700px] relative">
+                    <Image
+                        src="/disc.png"
+                        alt="Question background"
+                        fill
+                        className="object-contain z-0"
+                    />
+                    
+                    <div className="mb-4 sm:mb-6 md:mb-8 w-full text-black relative z-10">
+                        <div className="grid grid-cols-2 md:gap-1 gap-0 ml-[27px] xs:ml-[40px] sm:ml-[50px] md:ml-[70px]  mt-[4px] xs:mt-[0px]  md:mt-[10px] ">
+                            <Label htmlFor={`Question ${i + 1}`} className="col-span-2 text-[13px] xs:text-[17px] sm:text-[20px] md:text-[25px] font-semibold">
+                                Question {i + 1}
+                            </Label>
+                            <h1 className="text-[10px] xs:text-[12px] sm:text-[15px] md:text-[20px] col-span-2">{q.question_text}</h1>
+                            
+                            {q.opsi.map((choice, j) => (
+                                <div key={`${q.question_id}-option-${j}`} className="sm:py-0 text-[10px] xs:text-[12px] sm:text-[15px] md:text-[20px]">
+                                    <div className="flex">
+                                        <span className="mr-2">{abcd[j]}</span>
+                                        <span>{choice}</span>
+                                    </div>
+                                </div>
+                            ))}    
                         </div>
-                    ))}
+                    </div>
+     
                 </div>
-                <div className="relative bg-transparent mt-[2vw] h-auto w-[30vw] ml-[-1vw] flex flex-wrap">
-                    <h1 className="relative pl-[1vw] text-[1.2vw] top-0 mt-[0.5vw] text-[white]">
-                        Jawaban Benar:&nbsp;&nbsp; {abcd[jawabanBenar[i]]} &nbsp;&nbsp; {opsi[i].opsi[jawabanBenar[i]]}
+                
+                <div className="p-1 sm:p-2 mx-auto flex items-center justify-center gap-3 xs:gap-4 sm:gap-5">
+                        
+                    <h1 className="text-[13px] xs:text-[17px] sm:text-[20px] md:text-[25px] text-black font-bold">
+                        Jawaban Benar
                     </h1>
-                </div>
+
+                    {/* Answer */}
+                </div>         
+                <div className="mb-6 h-auto py-[10px] xs:py-[20px] sm:py-[40px] mx-auto w-[140px] xs:w-[210px] sm:w-[320px] md:w-[500px] relative">
+                    <Image
+                        src="/answerpic.png"
+                        alt="Answer background"
+                        fill
+                        className="object-contain z-0"
+                    />
+                    <h1 className="relative z-10 justify-self-center  text-black text-[10px] xs:text-[15px] sm:text-[23px] md:text-[25px]">
+                        {abcd[jawabanBenar[i]]} &nbsp; {opsi[i].opsi[jawabanBenar[i]]}
+                    </h1>    
+                </div>       
+
+                {i < arr.length - 1 && (
+                    <div className="h-2 w-6/12 mx-auto bg-[#DB82DA] rounded-full  my-2 sm:my-4 md:my-9"></div>
+                )}
             </div>
         </div>
     ));
 
     return (
-        <div className="bg-cover justify-items-center bg-[black] min-h-full w-full">
-            <button
-                onClick={() => redirect(`/student/review/${subject?.id}/`)}
-                className="absolute font-light text-[white] left-[5vw] top-[3vw] text-[1vw] opacity-[90%] hover:opacity-[100%] rounded-[2vw] bg-[#007bff] h-[3vw] w-[5vw]"
-            >
-                Back
-            </button>
-            <div className="relative flex flex-col bg-transparent top-[1vw] min-h-auto w-[60vw] mt-[2vw]">
-                <div className="relative bg-transparent h-[6vw] w-full top-0">
-                    <div className="relative justify-items-center bg-transparent h-[7vw] w-full">
-                        <h1 className="relative text-[4vw] top-0 mt-[0.5vw] text-[white] font-bold">
-                            {quiz_data?.title}
-                        </h1>
+        <div className="w-full min-h-screen bg-[#90AFF7]">
+            <div className="justify-self-center w-[80%] mx-auto pt-10">
+                <div className="grid grid-cols-4 h-full w-full">
+                    <button
+                    onClick={() => redirect(`/student/`)}
+                    className="mr-[10px] sm:mr-[20px] justify-self-end p-2 transition-colors"
+                    >
+                    <svg 
+                        className="w-6 h-6 sm:w-8 sm:h-8" 
+                        fill="none" 
+                        stroke="#870B6C"
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M4 6h16M4 12h16M4 18h16" 
+                        />
+                    </svg>
+                    
+                    </button>
+                    
+                    {/* TITLE PEMBAHASAN
+                    
+                    */}
+                    <div className="col-span-2 border-2 p-2 sm:p-3 md:p-4 border-black justify-items-center bg-[#A7F386] rounded-[15px] sm:rounded-[20px] md:rounded-[25px] flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
+                        <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex items-center">
+                            <IconBook className="w-full h-full" />
+                        </div>
+                        <h1 className="text-sm sm:text-xl md:text-2xl text-black font-bold flex items-center">
+                            PEMBAHASAN
+                        </h1>   
                     </div>
+                
                 </div>
-                <div className="relative mt-[-5vw]">{questions}</div>
             </div>
-            <div className="relative h-[5vw] w-full"></div>
+            
+            <div className="justify-items-center w-full">
+                <div className="pt-2 sm:pt-0 grid justify-items-center w-full pb-20 relative" 
+                    style={{
+                        backgroundImage: 'url("/pattern.png")',
+                        backgroundRepeat: 'repeat',
+                    }}
+                >
+                    <div className="mt-0 xs:mt-[10px] md:mt-[20px] w-[90%] max-w-[900px] h-auto sm:mb-[50px] md:mb-[40px] mb-[20px]">{questions}</div>
+                </div>
+            </div>
         </div>
+        
     );
 }

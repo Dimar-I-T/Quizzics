@@ -1,57 +1,84 @@
-'use client';
-import React, { Suspense } from 'react'
-import { signInAction, signUpAction } from "@/app/actions";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import { useRouter } from 'next/navigation';
+"use client"
+
+import { useState, Suspense } from "react"
+import type React from "react"
+import Link from "next/link"
+import { Input } from "@/components/ui/input"
+import { signInAction } from "@/app/actions";
 import { useSearchParams } from "next/navigation";
+
+type Role = "admin" | "student"
 
 const ErrorMessage = () => {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   if (!error) return null;
-  return <h1 className="relative text-[1.5vw] text-center text-[white]">
+  return <h1 className="font-pixel ml-2 text-black">
     {error}
   </h1>
 }
 
-const page = () => {
-  const router = useRouter();
+export default function LoginPage() {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    role: "student" as Role,
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const form = new FormData()
+    form.append("email", formData.email)
+    form.append("password", formData.password)
+    const response = await signInAction(form);
+  }
+
   return (
-    <div className="bg-cover bg-[black] min-h-full w-full justify-items-center">
-      <form>
-        <div className="relative bg-transparent h-[40vw] w-[50vw] top-[5vw] justify-items-center">
-          <h1 className="relative text-[5vw] font-bold text-[white]">
-            Log In
-          </h1>
-          <div className="relative bg-transparent top-[2vw] h-[30vw] w-[30vw]">
-            <Label htmlFor="email">Email</Label>
-            <Input className="mb-[1vw]" name="email" placeholder="you@example.com" required />
-            <Label htmlFor="password">Password</Label>
+    <div className="min-h-screen flex items-center justify-center bg-[#F5E6D3] p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-gradient-to-br from-blue-200 via-green-200 to-purple-200 backdrop-blur-sm rounded-3xl p-8 shadow-lg">
+          <div className="text-center space-y-2 mb-6">
+            <h1 className="text-4xl font-pixel text-black">Login</h1>
+            <h2 className="text-2xl font-pixel text-black">to start</h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              type="text"
+              placeholder="Email"
+              className="w-full px-4 py-3 bg-[#FFD1DC] border-none rounded-xl font-pixel text-lg placeholder:text-gray-600"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
             <Input
               type="password"
-              name="password"
-              placeholder="Your password"
-              minLength={6}
-              required
+              placeholder="Password"
+              className="w-full px-4 py-3 bg-[#FFD1DC] border-none rounded-xl font-pixel text-lg placeholder:text-gray-600"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
-            <SubmitButton className="relative mt-[3vw] left-1/2 transform -translate-x-1/2" formAction={signInAction} pendingText="Signing in...">
-              Log In
-            </SubmitButton>
-            <button onClick={() => { router.push("/register") }} className="absolute mt-[6vw] left-1/2 transform -translate-x-1/2 font-extralight opacity-[80%] hover:opacity-[100%] text-[#007bff] text-[1vw] h-[3vw] w-[5vw]">
-              Sign Up
-            </button>
-          </div>
-        </div>
-      </form>
+            <Suspense fallback={null}>
+              <ErrorMessage />
+            </Suspense>
+            <div className="pt-4">
+              <button
+                type="submit"
+                className="w-full px-6 py-3 font-pixel text-xl bg-[#FFD700] hover:bg-[#FFC000] transition-colors rounded-xl border-4 border-[#DAA520] hover:border-[#B8860B] active:translate-y-1 shadow-md"
+              >
+                Login
+              </button>
+            </div>
 
-      <Suspense fallback={null}>
-        <ErrorMessage/>
-      </Suspense>
+            <div className="text-center mt-4">
+              <Link href="/register" className="font-pixel text-blue-600 hover:text-blue-800 transition-colors">
+                Don&apos;t have an account?
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   )
 }
 
-export default page
